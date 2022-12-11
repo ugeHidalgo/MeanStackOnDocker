@@ -29,29 +29,35 @@ To get more help on the Angular CLI use `ng help` or go check out the [Angular C
 ## Docker build: (This will add a docker image 'meanstackapp' into the docker desktop)
 1- Add .dockerignore file on client folder with the following content:
     node_modules
-    npm-debug.log
 
 2- Add DockerFile on client folder with the following content:
-    FROM node:carbon #Base image on Node carbon, giving access to npm and node.
-    WORKDIR /usr/src/app #working directory inside the container, making it possible to reference this directory with “.”
+    # Create image based on the official Node 18 image from dockerhub
+    FROM node:18
 
-    # Install app dependencies
-    # A wildcard is used to ensure both package.json AND package-lock.json are copied
-    # where available (npm@5+)
-    COPY package*.json . #Copying package.json and package-lock.json to the working directory inside the image
+    # Create a directory where our app will be placed
+    RUN mkdir -p /usr/src/app
 
-    # Install any needed packages
-    RUN npm i # Runs npm install at the working directory
+    # Change directory so that our commands run inside this new directory
+    WORKDIR /usr/src/app
 
-    # Bundle app source
-    COPY . . #Copy all from current directory (if not in .dockerignore file) to working directory
+    # Copy dependency definitions
+    COPY package.json /usr/src/app
 
-    EXPOSE 4200 #Showing that the app is to be exposed on port 4200 (but only actually exposed on port 4200 if we specify this in the “docker run” command using the -p parameter).
-    CMD [ "npm", "start" ] #Specifying that the default command should be npm start. This can be overridden, if wanted, by specifying another command in “docker run”.
+    # Install dependecies
+    RUN npm install
+
+    # Get all the code needed to run the app
+    COPY . /usr/src/app
+
+    # Expose the port the app runs in
+    EXPOSE 4200
+
+    # Serve the app
+    CMD ["npm", "start"]
 
 3- Launch docker desktop and wait for engine to be started.
 4- Move to client folder
-5- Run command 'docker build -t meanstackapp:1.0 .'
+5- Run command 'docker build -t angular-client:dev .'
 
 ## Docker run:
-docker run -p 4200:4200 meanstackapp:1.0
+docker run -d --name angular-client -p 4200:4200 angular-client:dev
